@@ -1,13 +1,3 @@
-This is a very simple docker image with pm2, the process manager installed.
+This is a docker image that includes various build tools for Node.js projects.
 
-The image will use `/app` folder as the place for the source code and the working directory, so you should provide your app as a volume, i.e;
-
-    -v /path/to/app/source:/app
-
-Also, the executable (app entry js file) should be noted as the environment variable APP. The default value for APP variable is `app.js`.
-
-The container exposes 80 and 443 ports so you can bind to them.
-
-So a complete command for running a node.js application with pm2 would be;
-
-    docker run -d -e "APP=app.js" -p 3000:80 -v /path/to/app/source:/app dashersw/node-pm2
+This image is based on alpine:edge and includes git, MongoDB 3.2, Node.js 6.2.1, Java 8, npm, bower, gulp, AVA, python and rsync.
