@@ -13,11 +13,12 @@ ENV VERSION=v6.2.1 NPM_VERSION=3
 # ENV CONFIG_FLAGS="--fully-static --without-npm" DEL_PKGS="libgcc libstdc++" RM_DIRS=/usr/include
 
 ENV JAVA_VERSION_MAJOR=8 \
-    JAVA_VERSION_MINOR=74 \
-    JAVA_VERSION_BUILD=02 \
+    JAVA_VERSION_MINOR=92 \
+    JAVA_VERSION_BUILD=14 \
     JAVA_PACKAGE=server-jre \
     JAVA_HOME=/opt/jdk \
     PATH=${PATH}:/opt/jdk/bin \
+    GLIBC_VERSION=2.23-r3 \
     LANG=C.UTF-8
 
 # Node.js build
@@ -58,15 +59,17 @@ RUN apk add --no-cache curl make gcc g++ python linux-headers paxctl libgcc libs
   apk add --update python python-dev build-base bash git curl ca-certificates openssh-client rsync && \
     echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories && \
     apk add --no-cache mongodb && \
-    curl -L -o /tmp/glibc-2.21-r2.apk "https://circle-artifacts.com/gh/andyshinn/alpine-pkg-glibc/6/artifacts/0/home/ubuntu/alpine-pkg-glibc/packages/x86_64/glibc-2.21-r2.apk" && \
-    apk add --allow-untrusted /tmp/glibc-2.21-r2.apk && \
-    curl -L -o /tmp/glibc-bin-2.21-r2.apk "https://circle-artifacts.com/gh/andyshinn/alpine-pkg-glibc/6/artifacts/0/home/ubuntu/alpine-pkg-glibc/packages/x86_64/glibc-bin-2.21-r2.apk" && \
-    apk add --allow-untrusted /tmp/glibc-bin-2.21-r2.apk && \
-    /usr/glibc/usr/bin/ldconfig /lib /usr/glibc/usr/lib && \
+    for pkg in glibc-${GLIBC_VERSION} glibc-bin-${GLIBC_VERSION} glibc-i18n-${GLIBC_VERSION}; do curl -sSL https://github.com/andyshinn/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/${pkg}.apk -o /tmp/${pkg}.apk; done && \
+    apk add --allow-untrusted /tmp/*.apk && \
+    rm -v /tmp/*.apk && \
+    ( /usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 C.UTF-8 || true ) && \
+    echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh && \
+    /usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib && \
     mkdir /opt && curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" -o /tmp/java.tar.gz \
     http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/${JAVA_PACKAGE}-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.tar.gz && \
     gunzip /tmp/java.tar.gz && \
     tar -C /opt -xf /tmp/java.tar && \
+    apk del curl glibc-i18n && \
     ln -s /opt/jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR} /opt/jdk && \
     find /opt/jdk/ -maxdepth 1 -mindepth 1 | grep -v jre | xargs rm -rf && \
     cd /opt/jdk/ && ln -s ./jre/bin ./bin && \
@@ -75,6 +78,10 @@ RUN apk add --no-cache curl make gcc g++ python linux-headers paxctl libgcc libs
 
     rm -rf /etc/ssl /usr/share/man /tmp/* /var/cache/apk/* /root/.npm /root/.node-gyp \
            /usr/lib/node_modules/npm/man /usr/lib/node_modules/npm/doc /usr/lib/node_modules/npm/html \
+           /opt/jdk/*src.zip \
+           /opt/jdk/lib/missioncontrol \
+           /opt/jdk/lib/visualvm \
+           /opt/jdk/lib/*javafx* \
            /opt/jdk/jre/plugin \
            /opt/jdk/jre/bin/javaws \
            /opt/jdk/jre/bin/jjs \
