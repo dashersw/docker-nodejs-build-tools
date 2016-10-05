@@ -76,7 +76,7 @@ RUN apk add --no-cache curl make gcc g++ python linux-headers paxctl libgcc libs
     npm install -g bower gulp-cli ava && \
     mkdir -p /data/db && \
 
-    rm -rf /etc/ssl /usr/share/man /tmp/* /var/cache/apk/* /root/.npm /root/.node-gyp \
+    rm -rf /usr/share/man /tmp/* /var/cache/apk/* /root/.npm /root/.node-gyp \
            /usr/lib/node_modules/npm/man /usr/lib/node_modules/npm/doc /usr/lib/node_modules/npm/html \
            /opt/jdk/*src.zip \
            /opt/jdk/lib/missioncontrol \
