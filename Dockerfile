@@ -1,16 +1,17 @@
-FROM node:7.7.1-alpine
+FROM node:8.9-alpine
 
 MAINTAINER Armagan Amcalar "armagan@amcalar.com"
 
 ENV JAVA_VERSION_MAJOR=8 \
-    JAVA_VERSION_MINOR=92 \
-    JAVA_VERSION_BUILD=14 \
+    JAVA_VERSION_MINOR=151 \
+    JAVA_VERSION_BUILD=12 \
     JAVA_PACKAGE=server-jre \
     JAVA_HOME=/opt/jdk \
     PATH=${PATH}:/opt/jdk/bin \
     GLIBC_VERSION=2.23-r3 \
     LANG=C.UTF-8 \
-    NPM_CONFIG_LOGLEVEL=warn
+    NPM_CONFIG_LOGLEVEL=warn \
+    JAVA_8_HASH=e758a0de34e24606bca991d704f6dcbf
 
 # build tools
 RUN apk add --update python python-dev build-base bash git curl ca-certificates openssh-client rsync && \
@@ -20,8 +21,8 @@ RUN apk add --update python python-dev build-base bash git curl ca-certificates 
     ( /usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 C.UTF-8 || true ) && \
     echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh && \
     /usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib && \
-    mkdir /opt && curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" -o /tmp/java.tar.gz \
-    http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/${JAVA_PACKAGE}-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.tar.gz && \
+    mkdir -p /opt && curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" -o /tmp/java.tar.gz \
+    http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/${JAVA_8_HASH}/${JAVA_PACKAGE}-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.tar.gz && \
     gunzip /tmp/java.tar.gz && \
     tar -C /opt -xf /tmp/java.tar && \
     apk del curl glibc-i18n && \
@@ -30,7 +31,6 @@ RUN apk add --update python python-dev build-base bash git curl ca-certificates 
     cd /opt/jdk/ && ln -s ./jre/bin ./bin && \
     npm install -g bower gulp-cli ava && \
     mkdir -p /data/db && \
-
     rm -rf /usr/share/man /tmp/* /var/cache/apk/* /root/.npm /root/.node-gyp \
            /usr/lib/node_modules/npm/man /usr/lib/node_modules/npm/doc /usr/lib/node_modules/npm/html \
            /opt/jdk/*src.zip \
